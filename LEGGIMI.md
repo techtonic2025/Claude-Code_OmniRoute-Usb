@@ -1,6 +1,10 @@
 # Claude Code Portatile + OmniRoute
 
 > **Claude Code ufficiale su chiavetta USB, connesso a OmniRoute per usare 290+ provider AI — gratis.**
+>
+> 🪟 Windows 10/11 • 🐧 Linux • 🍎 macOS
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ---
 
@@ -9,7 +13,8 @@
 ```
 ClaudeCode-Portable/
 ├── LEGGIMI.md                  ← Questa guida
-├── START.bat                   ← Doppio click per avviare (Windows)
+├── START.bat                   ← Avvio Windows (doppio click)
+├── start.sh                    ← Avvio Linux/macOS (./start.sh)
 ├── .gitignore
 ├── LICENSE
 ├── data/                       ← Dati, chiavi, cronologia (creato al primo avvio)
@@ -18,8 +23,8 @@ ClaudeCode-Portable/
 │   ├── server.mjs              ← Server dashboard web
 │   └── index.html              ← Interfaccia chat
 └── tools/
-    ├── Change_Model.bat         ← Cambio modello rapido
-    ├── Open_Dashboard.bat       ← Avvia dashboard
+    ├── Change_Model.bat         ← Cambio modello rapido (Windows)
+    ├── Open_Dashboard.bat       ← Avvia dashboard (Windows)
     └── install-engine.ps1       ← Script installazione
 ```
 
@@ -27,7 +32,7 @@ ClaudeCode-Portable/
 
 ## Cosa ti serve
 
-- **Windows 10 o 11**
+- **Windows 10/11**, **Linux** o **macOS**
 - **Chiavetta USB** da 4 GB o più (USB 3.x consigliato)
 - **Connessione internet** — solo al primo avvio per scaricare Node.js e Claude Code
 - **OmniRoute** installato sul PC (vedi Passo 1)
@@ -82,14 +87,21 @@ Nella dashboard OmniRoute (`http://localhost:20128`):
 
 1. Scarica lo ZIP del progetto
 2. Estrailo sulla chiavetta USB
-3. La cartella deve essere tipo `D:\ClaudeCode-Portable\`
 
 ---
 
 ### Passo 5 — Primo avvio
 
 1. Assicurati che **OmniRoute sia in esecuzione** (Passo 2)
-2. Apri **START.bat** dalla chiavetta
+
+**Windows:**
+- Doppio click su `START.bat`
+
+**Linux/macOS:**
+```bash
+chmod +x start.sh
+./start.sh
+```
 
 Al primo avvio il launcher scarica automaticamente:
 
