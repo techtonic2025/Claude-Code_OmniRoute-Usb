@@ -1,0 +1,31 @@
+# Runtime (downloaded at first run)
+/engine/node-win-x64/
+/engine/node_modules/
+/engine/git-win-x64/
+/engine/GitPortable.exe
+/engine/node.zip
+/engine/_npm_done.tmp
+
+# User data (API keys, chats, logs — created at runtime)
+/data/openclaude/
+/data/home/
+/data/config/
+/data/app_data/
+/data/cache/
+/data/local_app_data/
+/data/npm-cache/
+/data/chats/
+/data/ollama/
+/data/*.log
+/data/*.tmp
+/data/_*
+
+# OS
+Thumbs.db
+.DS_Store
+*.swp
+*.swo
+
+# Keep folder structure
+!/data/.gitkeep
+!/engine/.gitkeep
