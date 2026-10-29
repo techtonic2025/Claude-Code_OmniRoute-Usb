@@ -34,6 +34,13 @@ set "GIT_EXE=%GIT_DIR%\bin\git.exe"
 set "CLAUDE_CODE_DIR=%ENGINE_DIR%\node_modules\@anthropic-ai\claude-code"
 set "OMNIROUTE_DIR=%ENGINE_DIR%\node_modules\omniroute"
 set "CC_CLI=%CLAUDE_CODE_DIR%\cli-wrapper.cjs"
+:: Claude Code 2.x runs a native binary shipped in a per-platform optional
+:: package. npm sometimes skips it (or an antivirus removes claude.exe), which
+:: gives "Failed to execute native binary ... claude.exe ENOENT".
+set "CC_NATIVE_PKG=@anthropic-ai/claude-code-win32-x64"
+if /i "%PROCESSOR_ARCHITECTURE%"=="ARM64" set "CC_NATIVE_PKG=@anthropic-ai/claude-code-win32-arm64"
+set "CC_NATIVE_DIR=%ENGINE_DIR%\node_modules\%CC_NATIVE_PKG:/=\%"
+set "CC_NATIVE_EXE=%CC_NATIVE_DIR%\claude.exe"
 set "OMNI_CLI=%OMNIROUTE_DIR%\dist\cli.js"
 
 :: 1. Force the portable AI to save logs/memory strictly to the USB
@@ -132,7 +139,36 @@ if "!NPM_RESULT!"=="FAIL" (
 )
 
 if not exist "%CC_CLI%" goto incomplete_engine
+call :ensure_native
+if errorlevel 1 exit /b 1
 echo   !GREEN![OK] Claude Code installed successfully!!RESET!
+exit /b 0
+
+:ensure_native
+if exist "%CC_NATIVE_EXE%" goto native_ready
+echo   !YELLOW![~] Claude Code native binary missing. Installing %CC_NATIVE_PKG%...!RESET!
+set "CC_VERSION="
+for /f "usebackq delims=" %%v in (`""%NODE_DIR%\node.exe" -p "require(process.argv[1]).version" "%CLAUDE_CODE_DIR%\package.json""`) do set "CC_VERSION=%%v"
+if "!CC_VERSION!"=="" set "CC_VERSION=latest"
+:: A half-installed package (package.json but no claude.exe) makes npm think
+:: it is already up to date, so remove it first.
+if exist "%CC_NATIVE_DIR%" rmdir /s /q "%CC_NATIVE_DIR%" >nul 2>&1
+pushd "%ENGINE_DIR%"
+call "%NODE_DIR%\npm.cmd" install %CC_NATIVE_PKG%@!CC_VERSION! --no-save --force --ignore-scripts --no-audit --no-fund --loglevel=warn --cache "%NPM_CACHE_DIR%" >> "%NPM_INSTALL_LOG%" 2>&1
+popd
+if not exist "%CC_NATIVE_EXE%" (
+    echo   !RED![ERROR] Claude Code native binary is still missing:!RESET!
+    echo   !DIM!        %CC_NATIVE_EXE%!RESET!
+    echo   !YELLOW!        Spesso e' l'antivirus che blocca claude.exe: aggiungi la cartella!RESET!
+    echo   !YELLOW!        "%ENGINE_DIR%" alle esclusioni e riavvia START.bat.!RESET!
+    echo   !DIM!        Log: %NPM_INSTALL_LOG%!RESET!
+    pause
+    exit /b 1
+)
+:native_ready
+:: Copy the native binary over the bin\claude.exe placeholder (the postinstall
+:: step that --ignore-scripts skips). cli-wrapper.cjs works either way.
+"%NODE_DIR%\node.exe" "%CLAUDE_CODE_DIR%\install.cjs" >> "%NPM_INSTALL_LOG%" 2>&1
 exit /b 0
 
 :incomplete_engine
@@ -173,6 +209,11 @@ if not exist "%NODE_DIR%\node.exe" (
 set "PATH=%NODE_DIR%;%PATH%"
 
 if not exist "%CC_CLI%" goto repair_engine
+:: Existing installs can have cli-wrapper.cjs but no native binary
+if not exist "%CC_NATIVE_EXE%" (
+    call :ensure_native
+    if errorlevel 1 exit /b 1
+)
 goto engine_ready
 :repair_engine
 if exist "%CLAUDE_CODE_DIR%" (
